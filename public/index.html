@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>URL Shortener Microservice</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"></script>
+  <body>
+    <div class="container" id="homepage">
+      <h1 class="title">URL Shortener Microservice</h1>
+      <h2>Example usage:</h2>
+      <code>https://ce-url-shortener.herokuapp.com/https://www.google.com</code><br>
+      <h2>Example output:</h2>
+      <code>{ "original-url":"http://www.google.com", "short-url":"https://ce-url-shortener.herokuapp.com/1250" }</code><br><br>
+      <h2>
+        Alternatively, enter the URL to be shortened below:
+      </h2>
+      <script>
+      function goTo() {
+        var url = window.location.href;
+        var append = document.getElementById("urlForm").value;
+        location.href=url+append;
+        return false;
+      }
+      </script>
+      <form onsubmit="return goTo();">
+        <input id="urlForm" name='query' type="text" placeholder="Enter URL" required />
+        <input type="submit" value="Submit"/>
+      </form>
+    </div>
+  </body>
+</html>
