@@ -1,26 +1,16 @@
-var mongoose = require('mongoose');
 
-// Counter schema for auto-incrementing id
-var CounterSchema = mongoose.Schema({
-  _id: {type: String, required: true},
-  seq: {type: Number, default: 0}
-});
-var counters = mongoose.model('counters', CounterSchema);
+var shortid = require('shortid');
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
 
-// URL schema
-var URLSchema = new mongoose.Schema({
-  id: {type: Number, default: 0},
-  url: String
+var Url = new Schema({
+    original_url: {type: String, required: true},
+    short_id: {type: String, required: true, default: idGen()}
 });
 
-// Function to auto-increment id for each new URL
-URLSchema.pre('save', function(next) {
-  var doc = this;
-  counters.findByIdAndUpdate({_id: 'urlid'}, {$inc: {seq: 1}}, function(err, counters) {
-    if (err) return next(err);
-    doc.id = counters.seq;
-    next();
-  });
-});
+function idGen() {
+  var num = Math.floor(100000 + Math.random() * 900000);
+  return num.toString().substring(0, 4);
+};
 
-module.exports = mongoose.model('Url', URLSchema);
+module.exports = mongoose.model('Url', Url);

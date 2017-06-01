@@ -2,11 +2,12 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var dotenv = require('dotenv');
+var validUrl = require('valid-url');
 
 // Connect to database
 dotenv.config();
-var url = "mongodb://localhost:27017/url-shortener";
-mongoose.connect(url);
+var url = process.env.MONGOLAB_URI || "mongodb://localhost:27017/url-shortener";
+mongoose.connect(url, {db: {safe: true}});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'Connection error: '));
 db.once('open', function() {
@@ -23,63 +24,31 @@ var Url = require(__dirname + '/models/urlModel.js');
 // Set port
 var port = process.env.PORT || 3000;
 
-// Lookup a shortened URL
-app.get('/:id', function(req, res) {
-  var id = parseInt(req.params.id,10);
-  if(Number.isNaN(id)) {
-    res.status(404).send("Invalid Short URL");
-  } else {
-    Url.find({id: id}, function (err, docs) {
-      if (err) res.status(404).send(err);
-      if (docs && docs.length) {
-        res.redirect(docs[0].url);
-      } else {
-        res.status(404).send("Invalid Short URL");
-      }
-    });
-  }
-});
-
-// create a new shortened URL
-app.get('/new/*?', function(req,res) {
-  console.log(req.params);
-  var validUrl = require('valid-url');
-  var newUrl = req.params[0];
-
-  // Validate the URL
-  if(newUrl && validUrl.isUri(newUrl)) {
-    // Search for URL first
-    Url.find({url: newUrl}, function (err, docs) {
-      if(docs && docs.length) {
-        res.status(201).json({
-          "original_url": newUrl,
-          "short_url": "https://ce-url-shortener.herokuapp.com/" + docs[0].id
+// Create new short URL
+app.get('/new/*', function(req, res) {
+    var original = req.url.replace('/new/', '');
+    if (!validUrl.isWebUri(original)) {
+        return res.json({error: "URL invalid"});
+    }
+    Url.create({original_url: original}, function(err, created) {
+        if (err) return res.status(500).send(err);
+        res.json({
+            original_url: created.original_url,
+            short_url: 'https://ce-url-shortener.herokuapp.com/' + created.short_id
         });
-      }
     });
-
-    // If it's not found, create a new one
-    Url.create({url: newUrl}, function (err, myUrl) {
-      if (err) {
-        return handleError(res, err);
-      }
-      return res.status(201).json({
-        "original_url": newUrl,
-        "short_url": "http://saintpeter-url-shortener.herokuapp.com/" + myUrl.id
-      });
-    });
-  } else {
-    res.status(400).json({
-      error: "URL Invalid"
-    });
-  }
-
 });
 
-// Error Handler
-function handleError(res, err) {
-  return res.status(500).send(err);
-}
+// Lookup existing short URL
+app.get('/*', function(req, res) {
+    Url.findOne({short_id: req.url.slice(1)}).exec().then(function(found) {
+        if (found) {
+            res.redirect(found.original_url);
+        } else {
+            res.send({error: "No short url found for given input"});
+        }
+    });
+});
 
 // Start server
 app.listen(port, function() {
