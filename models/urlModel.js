@@ -10,7 +10,7 @@ var counters = mongoose.model('counters', CounterSchema);
 // URL schema
 var URLSchema = new mongoose.Schema({
   id: {type: Number, default: 0},
-  'url': String
+  url: String
 });
 
 // Function to auto-increment id for each new URL
@@ -23,4 +23,4 @@ URLSchema.pre('save', function(next) {
   });
 });
 
-module.exports = mongoose.model('URL', URLSchema);
+module.exports = mongoose.model('Url', URLSchema);
